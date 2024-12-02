@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "rabbitmq"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["rabbitmq:15672"]
+  - job_name: "spring-actuator"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["service-name:8080"]
