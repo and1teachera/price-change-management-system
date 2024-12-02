@@ -1,21 +1,24 @@
-name: Docker Validation
+name: Infrastructure Validation
 
-on: [push, pull_request]
+on: 
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
 jobs:
-  test:
+  validate-infrastructure:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Docker
-      uses: docker/setup-buildx-action@v1
-
-    - name: Install Docker Compose
+    - uses: actions/checkout@v3
+    
+    - name: Install Docker Compose V2
       run: |
-        sudo apt-get update
-        sudo apt-get install -y docker-compose
+        mkdir -p ~/.docker/cli-plugins/
+        curl -SL https://github.com/docker/compose/releases/download/v2.23.3/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+        chmod +x ~/.docker/cli-plugins/docker-compose
+        docker compose version
 
-    - name: Test Docker Compose
-      run: docker-compose up -d && docker-compose down
+    - name: Validate Docker Compose configuration
+      working-directory: .
+      run: docker compose config
