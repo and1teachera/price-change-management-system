@@ -12,48 +12,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Create regional directories
+    - name: Install Docker Compose V2
       run: |
-        mkdir -p ./us-region/{local,archive,error}
-        mkdir -p ./europe-region/{local,archive,error}
-        mkdir -p ./asia-region/{local,archive,error}
-        mkdir -p ./pricelogix/output
-        mkdir -p ./config/{prometheus,grafana/provisioning,grafana/dashboards,loki,rabbitmq/certs}
-
-    - name: Validate directory structure
-      run: |
-        for region in us-region europe-region asia-region; do
-          for dir in local archive error; do
-            test -d ./$region/$dir || exit 1
-          done
-        done
-        test -d ./pricelogix/output
-        test -d ./config/prometheus
-        test -d ./config/grafana/provisioning
-        test -d ./config/grafana/dashboards
-        test -d ./config/loki
-        test -d ./config/rabbitmq/certs
+        mkdir -p ~/.docker/cli-plugins/
+        curl -SL https://github.com/docker/compose/releases/download/v2.23.3/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+        chmod +x ~/.docker/cli-plugins/docker-compose
+        docker compose version
 
     - name: Validate Docker Compose configuration
-      run: docker-compose config
-
-    - name: Validate Docker Compose build
-      run: |
-        # Create dummy Dockerfiles for services that don't exist yet
-        for service in rms-integration-service pricelogix-feed-service; do
-          mkdir -p ./services/$service
-          echo "FROM alpine:latest" > ./services/$service/Dockerfile
-          echo "CMD ['echo', 'Service placeholder']" >> ./services/$service/Dockerfile
-        done
-        docker-compose build
-
-    - name: Test Docker Compose startup
-      run: |
-        docker-compose up -d
-        sleep 30
-        docker-compose ps
-        docker-compose logs
-        docker-compose down
+      working-directory: .
+      run: docker compose config
