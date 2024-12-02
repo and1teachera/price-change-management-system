@@ -2,16 +2,18 @@
 
 ## Functional Requirements
 
-### 1. Retail Management Suite (RMS) - Price Adjustment Schedule (PAS) Processing
-- Fetch schedule data weekly via REST service.
+### 1. RMS Integration Service - Price Adjustment Schedule (PAS) Processing
+- Deploy multiple RMS Integration Service instances, each handling specific store groups
+- Execute daily data retrieval via REST service per instance
 - Transform JSON/CSV data to pipe-delimited format.
 - Map schedule data to PriceLogix specifications.
 - Support up to six adjustment dates per event.
 - Process and map inventory impact dates.
 - Maintain fiscal period alignment.
 - Handle event type classification and mapping.
+- Publish processed data to RabbitMQ for downstream processing"
 
-### 2. Retail Management Suite (RMS) - Price Adjustment Processing (PAD/PRA)
+### 2. PriceLogix Feed Service - Price Adjustment Processing (PAD/PRA)
 - Monitor local directories for incoming price adjustment files.
 - Validate file format and header information.
 - Transform data according to business rules.
@@ -22,8 +24,10 @@
   - PRA: ADD → PRICE_RESTORE, DEL → PRICE_RESTORE_CANCEL.
 
 ### 3. Message Queue Integration
-- Implement asynchronous message processing.
+- Configure RabbitMQ for multi-publisher, single-consumer architecture
+- Support multiple RMS Integration Service instances publishing to shared exchange
 - Maintain message persistence.
+- Implement sequential message processing by PriceLogix Feed Service
 - Handle message routing and delivery with RabbitMQ.
 - Implement retry policies with exponential backoff.
 - Process Dead Letter Queue messages every 15 minutes.
@@ -38,9 +42,12 @@
 ## Non-Functional Requirements
 
 ### 1. Performance
-- Process messages within 500ms maximum.
-- Support queue depth up to 1000 messages.
-- Implement a 3-retry policy with exponential backoff.
+- Support concurrent processing across multiple RMS Integration Service instances
+- Maintain 500ms maximum message processing time per record
+- Handle queue depth up to 1000 messages across all publishing instances
+- Implement 3-retry policy with exponential backoff for failed processing
+- Support staggered scheduling to prevent system resource contention
+- Monitor individual instance performance and overall system throughput
 
 ### 2. Reliability
 - Ensure message delivery guarantees.
@@ -57,8 +64,8 @@
 - Log security events, including failed authentications and unauthorized access.
 
 ### 4. Monitoring and Observability
-- Integrate with Prometheus for metrics collection.
-- Provide Grafana dashboards for visualization.
+- Integrate with Prometheus for metrics collection across all service instances
+- Provide Grafana dashboards showing both instance and aggregate performance
 - Implement comprehensive logging:
   - JSON-formatted log entries.
   - Multiple logging levels (Informational, Warning, Error).
@@ -85,7 +92,7 @@
 - RabbitMQ message broker with TLS encryption.
 - Prometheus monitoring and Grafana visualization.
 - Docker for containerization.
-- Gradle build system.
+- Gradle build system with multi-module support.
 
 ## Integration Points
 - RMS REST service for PAS data.

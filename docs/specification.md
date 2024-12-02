@@ -33,32 +33,34 @@ The integration uses a multi-stage data processing pipeline to handle three main
 #### Data Flow Overview
 
 **Price Adjustment Schedule (PAS) Processing:**
-- Retrieved weekly from a REST service    
-- Convert JSON/CSV to pipe-delimited format    
-- Standardized mapping to PriceLogix requirements    
-- Secure transfer to a specific RetailCore Systems directory    
-- Automated pickup by RetailCore for PriceLogix processing    
+Will be implemented in distributed RMS Integration Service instances:
+- Each instance handles a dedicated group of store locations 
+- Daily scheduled data retrieval from RMS REST service per instance
+- Convert JSON/CSV to pipe-delimited format 
+- Standardized mapping to PriceLogix requirements 
+- Publication to RabbitMQ message queue for downstream processing
 
 **PAD/PRA Processing:**
-- Monitor source files in a local directory    
-- Validate and transform data    
-- Map to PriceLogix format    
-- Archive management with weekly cleanup    
-- Output to a specific directory    
+Will be implemented in PriceLogix Feed Service.
+- Process incoming calls from RabbitMQ 
+- Validate and transform data 
+- Map to PriceLogix format 
+- Archive management and file cleanup 
+- Output to a specific directory 
 
 **Error Management:**
-- Failed files are moved to an error directory    
-- Automated error notifications    
-- Transaction logging for audits    
-- Error recovery procedures    
+- Failed files are moved to an error directory 
+- Automated error notifications 
+- Transaction logging for audits 
+- Error recovery procedures 
 
 #### Data Governance
 
 To ensure data integrity, the system includes:
-- Detailed audit logging    
-- Secure file handling    
-- Automated archive management    
-- Robust error handling    
+- Detailed audit logging 
+- Secure file handling 
+- Automated archive management 
+- Robust error handling 
 - System health monitoring
 #### Message Queue Integration
 
@@ -68,19 +70,26 @@ To ensure data integrity, the system includes:
     - Self-signed certificates for development environments.
     - Let's Encrypt for production environments.
 - **RabbitMQ Configuration**:
-    - Virtual host isolation for each service.
+	- Multiple RMS Integration Service instances publish to a shared RabbitMQ exchange
     - User permissions limited to specific queues.
+    - Messages are processed in order of arrival regardless of source instance
+	- Single PriceLogix Feed Service consumes and processes messages sequentially
+	- Failed processing attempts trigger configurable retry logic
+	- Messages exceeding retry limits move to Dead Letter Queue for investigation
+	- Comprehensive monitoring tracks message flow and processing status
 - **Monitoring**:
     - RabbitMQ Exporter for Prometheus integration.
     - Metrics include queue depth, message rate, and consumer count.
 
 ##### Message Flow
 
-- Asynchronous messaging for event-driven architecture.
-- Retry policies using exponential backoff with a maximum of three attempts.
-- Dead Letter Queue:
-    - Defined routing for failed messages.
-    - Monitoring and alerting for DLQ size growth.
+- Multiple RMS Integration Service instances operate on daily schedules for their assigned store groups
+- Each instance publishes processed data to the same RabbitMQ exchange
+- Messages flow through the queue in order of arrival, regardless of source instance
+- PriceLogix Feed Service processes messages sequentially from the queue
+- Failed processing attempts trigger retry logic with exponential backoff
+- Messages that exceed retry limits move to the Dead Letter Queue
+- Dead Letter Queue provides visibility into processing failures and enables recovery procedures
 
 ```mermaid
 flowchart LR
@@ -355,7 +364,11 @@ The system uses message queues to keep processing reliable during busy times, al
 - Recovery from interruptions  
 #### 8.2 Price Adjustment Schedule
 
-The system makes an automated weekly GET request to retrieve Price Adjustment Schedule data. This process handles everything from getting the data to transforming and delivering it to PriceLogix.
+- Multiple RMS Integration Service instances operate on daily schedules
+- Each instance processes its assigned store group independently
+- Staggered scheduling prevents system-wide resource contention
+- Message queue ensures orderly processing regardless of source instance
+- Built-in monitoring tracks processing status across all instances
 #### 8.3 Message Processing SLAs
 
 - Maximum message processing time: 500ms
@@ -471,3 +484,4 @@ JMX monitoring works with Loki to provide insights connected to application logs
   - Historical analysis for troubleshooting.
 - **Retention Policies**: Configurable retention for logs to meet storage and compliance needs.
 - **Alerting**: Logs are tagged for easy event correlation, and Prometheus alerts include log details for quick issue resolution.
+
