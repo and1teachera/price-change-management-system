@@ -1,6 +1,8 @@
 services:
   rms-integration-service-us:
-    build: ./services/rms-integration-service
+    build:
+      context: .
+      dockerfile: services/rms-integration-service/Dockerfile
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - RABBITMQ_HOST=rabbitmq
@@ -21,7 +23,9 @@ services:
       retries: 3
 
   rms-integration-service-europe:
-    build: ./services/rms-integration-service
+    build:
+      context: .
+      dockerfile: services/rms-integration-service/Dockerfile
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - RABBITMQ_HOST=rabbitmq
@@ -42,7 +46,9 @@ services:
       retries: 3
 
   rms-integration-service-asia:
-    build: ./services/rms-integration-service
+    build:
+      context: .
+      dockerfile: services/rms-integration-service/Dockerfile
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - RABBITMQ_HOST=rabbitmq
@@ -63,7 +69,9 @@ services:
       retries: 3
 
   pricelogix-feed-service:
-    build: ./services/pricelogix-feed-service
+    build:
+      context: .
+      dockerfile: services/pricelogix-feed-service/Dockerfile
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - RABBITMQ_HOST=rabbitmq
