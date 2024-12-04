@@ -1,13 +1,13 @@
-package com.zlatenov.rms_integration_service;
+package com.zlatenov.pricelogix;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class RmsIntegrationServiceApplication {
+public class PricelogixFeedServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(RmsIntegrationServiceApplication.class, args);
+		SpringApplication.run(PricelogixFeedServiceApplication.class, args);
 	}
 
 }

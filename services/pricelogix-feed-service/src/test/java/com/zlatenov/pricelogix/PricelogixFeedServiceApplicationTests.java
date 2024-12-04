@@ -1,10 +1,10 @@
-package com.zlatenov.rms_integration_service;
+package com.zlatenov.pricelogix;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class RmsIntegrationServiceApplicationTests {
+class PricelogixFeedServiceApplicationTests {
 
 	@Test
 	void contextLoads() {
