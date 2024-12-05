@@ -1,7 +1,9 @@
 rootProject.name = 'retail-price-management'
 
-include 'rms-integration-service'
-include 'pricelogix-feed-service'
+include 'services:rms-integration-service'
+include 'services:pricelogix-feed-service'
 
-project(':rms-integration-service').projectDir = file('services/rms-integration-service')
-project(':pricelogix-feed-service').projectDir = file('services/pricelogix-feed-service')
+project(':services:rms-integration-service').projectDir = file('services/rms-integration-service')
+project(':services:pricelogix-feed-service').projectDir = file('services/pricelogix-feed-service')
+
+enableFeaturePreview('STABLE_CONFIGURATION_CACHE')
