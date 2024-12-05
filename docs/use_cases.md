@@ -82,6 +82,27 @@
 - Future improvement: Introduce health checks for the RMS REST API to reduce the frequency of failed requests.
 - Consider monitoring and alerting for data volume discrepancies, ensuring expected records are retrieved.
 
+``` mermaid
+	%% PAS Data Retrieval Use Case
+flowchart TD
+    A[Start] --> B[Daily Cron Trigger]
+    B --> C[Send GET Request to RMS API]
+    C --> D{API Available?}
+    D -->|Yes| E[Receive JSON Data]
+    D -->|No| F[Log Error]
+    F --> G[Retry with Backoff]
+    G --> C
+    E --> H[Validate Data Structure]
+    H --> I{Valid Data?}
+    I -->|Yes| J[Transform to Pipe-Delimited Format]
+    I -->|No| K[Log Validation Errors]
+    K --> L[Skip Invalid Records]
+    J --> M[Map to PriceLogix Format]
+    M --> N[Publish to RabbitMQ]
+    N --> O[Log Operation Status]
+    O --> P[End]
+    L --> O
+```
 ### **PAD/PRA File Processing Use Case**
 
 **Use Case Description**: Monitor and process PAD/PRA files, transform the data, and output results for PriceLogix integration.
@@ -173,6 +194,23 @@
 - Future improvement: Automate notifications for administrators when files are moved to the error directory.
 - Consider implementing a dashboard for file processing metrics, such as counts of processed, archived, and failed files.
 
+``` mermaid
+flowchart TD
+    A1[Start] --> B1[Monitor Input Directory]
+    B1 --> C1{New File Detected?}
+    C1 -->|Yes| D1[Validate File Format]
+    C1 -->|No| B1
+    D1 --> E1{Valid Format?}
+    E1 -->|Yes| F1[Process File Content]
+    E1 -->|No| G1[Move to Error Directory]
+    F1 --> H1[Transform Data]
+    H1 --> I1[Write to Output]
+    I1 --> J1[Move Original to Archive]
+    J1 --> K1[Generate Summary Log]
+    G1 --> K1
+    K1 --> L1[End]
+```
+
 ### **Message Queue Integration Use Case**
 
 **Use Case Description**: Publish and consume messages using RabbitMQ for asynchronous data exchange.
@@ -254,7 +292,25 @@
 - Future improvement: Implement message priority levels to expedite critical messages.
 - Add monitoring alerts for prolonged queue depth exceeding thresholds.
 
-
+``` mermaid
+flowchart TD
+    A2[Start] --> B2[Transform Data]
+    B2 --> C2[Connect to RabbitMQ]
+    C2 --> D2{Connection Success?}
+    D2 -->|Yes| E2[Publish Message]
+    D2 -->|No| F2[Retry Connection]
+    F2 --> C2
+    E2 --> G2{Publish Success?}
+    G2 -->|Yes| H2[Route Message]
+    G2 -->|No| I2[Retry Publishing]
+    I2 --> E2
+    H2 --> J2[Consume Message]
+    J2 --> K2{Processing Success?}
+    K2 -->|Yes| L2[Acknowledge Message]
+    K2 -->|No| M2[Move to DLQ]
+    L2 --> N2[End]
+    M2 --> N2
+```
 ### **File Management Use Case**
 
 **Use Case Description**: Manage PAD/PRA file lifecycle, including archiving processed files, handling errors, and cleaning up outdated files, within each service instance's directory structure.
@@ -341,6 +397,24 @@
 
 - Future improvement: Integrate file management logs with a centralized monitoring system for real-time visibility.
 - Consider adding administrator notifications for cleanup errors or excessive files in the error directory.
+
+```mermaid
+flowchart TD
+    A3[Start] --> B3[Monitor Instance Directories]
+    B3 --> C3{New File?}
+    C3 -->|Yes| D3[Process File]
+    C3 -->|No| E3[Check Archive Age]
+    D3 --> F3{Processing Success?}
+    F3 -->|Yes| G3[Move to Archive]
+    F3 -->|No| H3[Move to Error Dir]
+    E3 --> I3{Files > 1 Week?}
+    I3 -->|Yes| J3[Delete Old Files]
+    I3 -->|No| B3
+    G3 --> K3[Log Operation]
+    H3 --> K3
+    J3 --> K3
+    K3 --> B3
+```
 
 ### **Monitoring and Observability Use Case**
 
@@ -440,6 +514,22 @@
 - Future improvement: Implement business-level metrics, such as successful pricing adjustment counts, to provide more actionable insights.
 - Consider integrating Grafana alerts with a notification service like PagerDuty for immediate escalation of critical issues.
 
+
+``` mermaid
+flowchart TD
+    A[Start] --> B[Expose Metrics Endpoints]
+    B --> C[Prometheus Scraping]
+    C --> D[Store Metrics]
+    D --> E{Threshold Breach?}
+    E -->|Yes| F[Generate Alert]
+    E -->|No| G[Update Dashboards]
+    F --> H[Send Notifications]
+    H --> I[Admin Investigation]
+    I --> J[Log Resolution]
+    G --> K[Aggregate Logs in Loki]
+    J --> K
+    K --> L[End]
+```
 ### **Security and Compliance Use Case**
 
 **Use Case Description**: Secure system communication and ensure compliance with auditing and data protection standards.
@@ -533,6 +623,23 @@
 - Future improvement: Implement IP whitelisting for RabbitMQ connections.
 - Consider integrating a third-party identity provider (e.g., OAuth) for enhanced security.
 
+
+``` mermaid
+flowchart TD
+    A1[Start] --> B1[Generate TLS Certificates]
+    B1 --> C1[Configure RabbitMQ TLS]
+    C1 --> D1[Service Authentication]
+    D1 --> E1{Auth Success?}
+    E1 -->|Yes| F1[Establish Secure Connection]
+    E1 -->|No| G1[Log Failed Attempt]
+    G1 --> H1[Increment Failed Counter]
+    H1 --> I1{Max Retries?}
+    I1 -->|Yes| J1[Lock Account]
+    I1 -->|No| D1
+    F1 --> K1[Log Security Event]
+    J1 --> K1
+    K1 --> L1[End]
+```
 ### **Dead Letter Queue Processing Use Case**
 
 **Use Case Description**: Process failed messages from the Dead Letter Queue (DLQ) for reprocessing or archival.
@@ -612,6 +719,21 @@
 
 - Future improvement: Implement a retry policy for messages within the DLQ itself before routing them to archival.
 
+
+``` mermaid
+flowchart TD
+    A2[Start] --> B2[Poll DLQ]
+    B2 --> C2{Messages Found?}
+    C2 -->|Yes| D2[Validate Message]
+    C2 -->|No| B2
+    D2 --> E2{Can Reprocess?}
+    E2 -->|Yes| F2[Move to Main Queue]
+    E2 -->|No| G2[Archive Message]
+    F2 --> H2[Log Reprocessing]
+    G2 --> H2
+    H2 --> I2[Generate Report]
+    I2 --> J2[End]
+```
 
 ### **Certificate Management Use Case**
 
@@ -714,6 +836,24 @@
 - Future improvement: Integrate certificate management with centralized monitoring tools to provide real-time alerts for upcoming expirations.
 - Consider adding automated certificate backup to avoid data loss during updates.
 
+
+``` mermaid 
+flowchart TD
+    A3[Start] --> B3[Check Certificate Validity]
+    B3 --> C3{Expiring Soon?}
+    C3 -->|Yes| D3[Generate New Certificate]
+    C3 -->|No| E3[Monitor Status]
+    D3 --> F3{Generation Success?}
+    F3 -->|Yes| G3[Deploy Certificate]
+    F3 -->|No| H3[Alert Administrators]
+    G3 --> I3[Restart Services]
+    I3 --> J3[Verify Connections]
+    H3 --> K3[Manual Intervention]
+    J3 --> L3[Log Update]
+    K3 --> L3
+    L3 --> M3[End]
+```
+
 ### **Alert Management Use Case**
 
 **Use Case Description**: Detect system anomalies, trigger instance-level and system-wide alerts, and notify administrators to enable timely issue resolution.
@@ -811,6 +951,24 @@
 - Future improvement: Integrate alert management with incident response tools like PagerDuty for better prioritization and tracking.
 - Consider implementing machine learning for adaptive alert thresholds to reduce false positives.
 
+
+``` mermaid
+flowchart TD
+    A[Start] --> B[Monitor Metrics]
+    B --> C{Threshold Breach?}
+    C -->|Yes| D[Generate Alert]
+    C -->|No| B
+    D --> E[Determine Severity]
+    E --> F{High Severity?}
+    F -->|Yes| G[Immediate Notification]
+    F -->|No| H[Queue Alert]
+    G --> I[Track Response Time]
+    H --> I
+    I --> J[Resolution Status]
+    J --> K[Update Alerts]
+    K --> L[End]
+```
+
 ### **System Startup and Initialization Use Case**
 
 **Use Case Description**: Initialize services, establish connections, and verify readiness for normal operation.
@@ -886,6 +1044,20 @@
 - Future improvement: Implement a centralized orchestration tool to manage the startup sequence.
 - Consider adding self-healing mechanisms for common initialization failures.
 
+``` mermaid
+flowchart TD
+    A1[Start] --> B1[Load Configurations]
+    B1 --> C1[Verify Dependencies]
+    C1 --> D1{Dependencies OK?}
+    D1 -->|Yes| E1[Connect to RabbitMQ]
+    D1 -->|No| F1[Retry Dependencies]
+    F1 --> C1
+    E1 --> G1[Initialize Directories]
+    G1 --> H1[Start Monitoring]
+    H1 --> I1[Log Readiness]
+    I1 --> J1[Enter Operational Mode]
+    J1 --> K1[End]
+```
 
 ### **File Cleanup Use Case**
 
@@ -974,6 +1146,31 @@
 - Future improvement: Integrate cleanup metrics with Grafana to visualize storage usage trends and cleanup efficiency.
 - Consider implementing notifications for cleanup failures or excessive files in archive directories.
 
+
+``` mermaid 
+flowchart TD
+    A1[Start] --> B1[Initialize Cleanup Job]
+    B1 --> C1[Scan Instance Directories]
+    C1 --> D1[Get File List]
+    D1 --> E1{Files Found?}
+    E1 -->|No| F1[Log No Action Needed]
+    E1 -->|Yes| G1[Check File Ages]
+    G1 --> H1{File > Retention?}
+    H1 -->|Yes| I1[Log File Metadata]
+    H1 -->|No| J1[Skip File]
+    I1 --> K1[Secure Delete]
+    K1 --> L1{Delete Success?}
+    L1 -->|Yes| M1[Update Cleanup Log]
+    L1 -->|No| N1[Log Error]
+    J1 --> O1{More Files?}
+    M1 --> O1
+    N1 --> O1
+    O1 -->|Yes| G1
+    O1 -->|No| P1[Generate Summary]
+    F1 --> P1
+    P1 --> Q1[End]
+```
+
 ### **Message Retry Mechanism Use Case**
 
 **Use Case Description**: Retry failed message deliveries based on a defined policy to ensure reliable processing.
@@ -1049,6 +1246,26 @@
 - Future improvement: Implement retry policies specific to message types or priority levels.
 - Consider adding alerts for messages moved to the DLQ after exceeding retry limits.
 
+``` mermaid
+flowchart TD
+    A[Start] --> B[Detect Message Failure]
+    B --> C[Flag Message for Retry]
+    C --> D[Calculate Backoff Time]
+    D --> E[Wait for Backoff Period]
+    E --> F[Attempt Redelivery]
+    F --> G{Delivery Success?}
+    G -->|Yes| H[Process Message]
+    G -->|No| I[Increment Retry Count]
+    I --> J{Max Retries?}
+    J -->|No| D
+    J -->|Yes| K[Move to DLQ]
+    H --> L[Acknowledge Message]
+    K --> M[Log Final Failure]
+    L --> N[Remove from Queue]
+    M --> O[Alert Administrators]
+    N --> P[End]
+    O --> P
+```
 ### **Staggered Scheduling for Distributed Services Use Case**
 
 **Use Case Description**: Schedule tasks across multiple RMS Integration Service instances to prevent resource contention and ensure efficient processing.
@@ -1130,3 +1347,30 @@
 
 - Future improvement: Integrate the scheduling framework with the monitoring system to visualize task execution in real time.
 - Consider implementing adaptive scheduling based on historical execution metrics.
+
+``` mermaid
+stateDiagram-v2 
+[*] --> Initialization
+Initialization --> ServiceRegistration
+ServiceRegistration --> ScheduleAssignment
+ScheduleAssignment --> Rebalancing: Conflict Detected
+ScheduleAssignment --> Activation: No Conflicts
+Rebalancing --> ScheduleAssignment
+Activation --> Execution
+Execution --> CompletionHandling
+CompletionHandling --> NextCyclePrep
+NextCyclePrep --> Execution
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
