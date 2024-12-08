@@ -6,17 +6,21 @@
 - Deploy multiple RMS Integration Service instances, each handling specific store groups
 - Execute daily data retrieval via REST service per instance
 - Transform JSON/CSV data to pipe-delimited format.
-- Map schedule data to PriceLogix specifications.
+- Map schedule data to **PriceLogix Schedule Entry (PSE)** format specifications.
 - Support up to six adjustment dates per event.
 - Process and map inventory impact dates.
 - Maintain fiscal period alignment.
 - Handle event type classification and mapping.
-- Publish processed data to RabbitMQ for downstream processing"
+- Publish processed data to RabbitMQ for downstream processing
+- Implement OAuth 2.0 client credentials authentication for RMS API access
+- Manage and securely store OAuth client credentials
+- Handle token acquisition and renewal
+- Support configuration of OAuth endpoints for different environments
 
 ### 2. PriceLogix Feed Service - Price Adjustment Processing (PAD/PRA)
 - Monitor local directories for incoming price adjustment files.
 - Validate file format and header information.
-- Transform data according to business rules.
+- Transform data into **PriceLogix Adjustment Record (PAR)** format according to business rules.
 - Process store location hierarchy data monthly.
 - Support location expansion for PRA records.
 - Map status codes based on record type and action:
@@ -93,6 +97,9 @@
 - Prometheus monitoring and Grafana visualization.
 - Docker for containerization.
 - Gradle build system with multi-module support.
+- Support for PSE and PAR format validation and transformation
+- Implementation of format-specific error handling and logging
+- Performance optimization for both PSE and PAR processing paths
 
 ## Integration Points
 - RMS REST service for PAS data.
