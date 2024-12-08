@@ -55,9 +55,33 @@ The distributed nature of RMS Integration Service instances requires careful coo
 ### Message Queue Architecture
 - **RabbitMQ**: Chosen for reliable message delivery, persistence, and error handling.
 ### Data Consistency
-- Each store group is processed by a single instance.    
-- Message order is preserved.    
-- Clear transaction boundaries ensure consistency.    
+- Each store group is processed by a single instance
+- Message order is preserved
+- Clear transaction boundaries ensure consistency
+#### Format-specific validation rules:
+  * PSE Format:
+    - Mandatory field presence validation
+    - Date sequence integrity checks
+    - Fiscal year format verification
+    - Event type code validation
+    - Cross-field logical validation
+  * PAR Format:
+    - Numeric field range validation
+    - Location key existence verification
+    - Status code transformation validation
+    - Date format standardization
+    - Price and percentage range checks
+#### Transformation requirements:
+  * PSE Transformation:
+    - JSON to pipe-delimited conversion
+    - Date field standardization
+    - Event type mapping
+    - Fiscal period alignment
+  * PAR Transformation:
+    - Status code mapping
+    - Location hierarchy expansion
+    - Event identifier extraction
+    - Price calculation validation
 ### Monitoring and Observability
 - Metrics collection, log aggregation, and centralized alerting support system health and performance tracking.
 
@@ -121,3 +145,9 @@ The distributed nature of RMS Integration Service instances requires careful coo
 - **Transport Security**: TLS for all communication.    
 - **Authentication and Authorization**: Centralized identity management with fine-grained access control.    
 - **Audit and Compliance**: Centralized logging for security monitoring and reporting.
+### Authentication Patterns:
+- OAuth 2.0 client credentials flow for RMS API access
+    - Secure credential storage in environment variables
+    - Automatic token refresh handling
+    - Separate credentials per environment
+- File-based integration security through filesystem permissions and encryption

@@ -17,6 +17,8 @@
 **Preconditions**:
 
 - RMS REST API is operational.
+- OAuth client credentials are configured and valid
+- Token acquisition is functioning
 - RMS Integration Service is running and has valid configurations.
 - RabbitMQ is configured and available.
 
@@ -30,10 +32,19 @@
 1. A daily cron job triggers the RMS Integration Service at the scheduled interval.
 2. The service sends a GET request to the RMS REST API.
 3. The API responds with PAS data in JSON format.
-4. The service validates the data structure and checks for mandatory fields.
-5. Valid data is transformed into a pipe-delimited format as specified in the modernization master plan.
-6. Transformed data is mapped to PriceLogix specifications, ensuring compliance with standardized naming conventions.
-7. The service publishes the processed PAS data to a RabbitMQ exchange.
+4. The service validates the data structure and checks for mandatory fields:
+   - Validates event identifiers for correct numeric format
+   - Verifies fiscal period information completeness
+   - Ensures adjustment dates follow chronological order
+   - Validates event type classifications against allowed values
+   - Confirms all required location applicability fields are present
+5. Valid data is transformed into PSE pipe-delimited format, following strict field mapping rules.
+6. Each PSE record undergoes format-specific validation:
+   - Verifies proper fiscal year formatting
+   - Validates chronological sequence of adjustment dates (adj_date_1 through adj_date_6)
+   - Ensures event type code matches approved PriceLogix values
+   - Confirms inventory date formatting and logical placement
+7. The service publishes the validated PSE data to a RabbitMQ exchange.
 8. The service logs the operation, including the total number of records processed and any issues encountered.
 
 **Extensions, Other Scenarios, and Alternatives**:
@@ -56,8 +67,8 @@
 
 **Data Variation List**:
 
-- **Input**: JSON data containing fields such as event identifiers, adjustment dates, fiscal periods, and event types.
-- **Output**: Pipe-delimited PAS data mapped to PriceLogix specifications.
+- **Input**: JSON data containing fields such as event identifiers, adjustment dates, fiscal periods, and event types called Price Adjustment Schedule (PAS).
+- **Output**: PriceLogix Schedule Entry (PSE) data in standardized pipe-delimited format.
 
 **Frequency Occurrence**: Typically runs once daily, as per the cron job schedule.
 
@@ -137,11 +148,21 @@ flowchart TD
 1. PriceLogix Feed Service monitors the input directory for new PAD/PRA files.
 2. Upon detecting a file, the service validates its format and header information against the standardized naming conventions.
 3. For valid files:
-    - The service reads the file content line by line.
-    - Transforms each record according to business rules.
-    - Maps the transformed data to the PriceLogix format.
-    - Writes the processed data to the output directory.
-    - Moves the original file to the archive directory.
+   - The service reads the file content line by line.
+   - Performs PAR-specific data validation:
+     * Validates event_id numeric format and range
+     * Verifies sku_id exists and follows naming conventions
+     * Confirms location_key matches valid store locations
+     * Validates item_location_status against allowed values
+     * Checks adjustment_retail_price and adjustment_percentage for valid ranges
+     * Ensures date fields follow required format (YYYY-MM-DD)
+   - Transforms each record according to PAR format requirements:
+     * Maps source fields to PAR structure
+     * Applies business rules for status code translation
+     * Handles location hierarchy expansion for PRA records
+   - Validates transformed PAR records for completeness and consistency
+   - Writes the processed data to the output directory.
+   - Moves the original file to the archive directory.
 4. For invalid or partially processed files:
     - Log detailed error information.
     - Move the file to the error directory for manual review.
@@ -168,8 +189,8 @@ flowchart TD
 
 **Data Variation List**:
 
-- **Input**: PAD/PRA files in a pipe-delimited format containing action codes, item details, and adjustment details.
-- **Output**: Transformed files in the PriceLogix format.
+- **Input**: PAD/PRA files in pipe-delimited format containing action codes, item details, and adjustment details
+- **Output**: PriceLogix Adjustment Record (PAR) data in standardized format.
 
 **Frequency Occurrence**: Files are processed as they are detected in the monitored directory, typically on an hourly or as-needed basis.
 

@@ -30,37 +30,43 @@ The integration uses a multi-stage data processing pipeline to handle three main
 2. Price Adjustment Directive (PAD)
 3. Price Restoration Action (PRA)
 
+The RMS system offers two distinct integration patterns, each designed to meet specific business needs:
+
+1. **RMS REST API**: This API provides enterprise-wide access to Price Adjustment Schedule (PAS) data, serving a variety of systems like inventory management, financial forecasting, and price optimization. Secured with OAuth 2.0 using the client credentials grant type, the API ensures controlled yet flexible access across the organization. Our RMS Integration Service is one of the systems leveraging this API—it authenticates, retrieves PAS data, and seamlessly integrates it into downstream processes.
+    
+2. **Automated File Exports**: For Price Adjustment Directives (PAD) and Price Restoration Actions (PRA), RMS uses an automated export process. These specialized files are tailored specifically for price optimization workflows. The export operation is embedded within RMS's pricing workflow and generates standardized files, which are then placed in pre-configured directories monitored by our RMS Integration Service instances. This approach ensures efficient and reliable handling of high-volume pricing adjustment data between RMS and PriceLogix.
+
 #### Data Flow Overview
 
 **Price Adjustment Schedule (PAS) Processing:**
 Will be implemented in distributed RMS Integration Service instances:
 - Each instance handles a dedicated group of store locations 
 - Daily scheduled data retrieval from RMS REST service per instance
-- Convert JSON/CSV to pipe-delimited format 
-- Standardized mapping to PriceLogix requirements 
+- Convert JSON/CSV to pipe-delimited format    
+- Standardized mapping to PriceLogix requirements    
 - Publication to RabbitMQ message queue for downstream processing
 
 **PAD/PRA Processing:**
 Will be implemented in PriceLogix Feed Service.
-- Process incoming calls from RabbitMQ 
-- Validate and transform data 
-- Map to PriceLogix format 
-- Archive management and file cleanup 
-- Output to a specific directory 
+- Process incoming calls from RabbitMQ    
+- Validate and transform data    
+- Map to PriceLogix format    
+- Archive management and file cleanup    
+- Output to a specific directory    
 
 **Error Management:**
-- Failed files are moved to an error directory 
-- Automated error notifications 
-- Transaction logging for audits 
-- Error recovery procedures 
+- Failed files are moved to an error directory    
+- Automated error notifications    
+- Transaction logging for audits    
+- Error recovery procedures    
 
 #### Data Governance
 
 To ensure data integrity, the system includes:
-- Detailed audit logging 
-- Secure file handling 
-- Automated archive management 
-- Robust error handling 
+- Detailed audit logging    
+- Secure file handling    
+- Automated archive management    
+- Robust error handling    
 - System health monitoring
 #### Message Queue Integration
 
@@ -215,7 +221,7 @@ The platform offers reliable management through RabbitMQ tools and integrated da
     - Logs are reviewed regularly to catch any suspicious activity.
 ### 5. Message Format Specifications
 
-#### 5.1 Price Change Candidate/PRA Format
+#### 5.1 Price Change Candidate/PRA Format (PAR Output)
 
 ##### Input Format
 The system accepts source data in a pipe-delimited format with the following structure:
@@ -241,7 +247,7 @@ Example transformed record:
 439|27671433|1501|PRICE_ADJ|16|2024-02-16|2024-02-22|14.5
 ```
 
-#### 5.2 Price Adjustment Schedule Format
+#### 5.2 Price Adjustment Schedule Format (PSE Output)
 
 ##### Input Format
 The system receives schedule data through a REST service in JSON format containing:
@@ -275,32 +281,35 @@ ACTION_CODE|ITEM_ID|SKU_LIST|DIFF_ID|LOCATION_TYPE|LOCATION_GROUP|LOCATION_ID|EF
 439-PAD-7-2024-04--1|27671433|1501||0|5000|1501|2024-02-16|||||16||||2024-02-16|N
 ```
 
-**Output Format:**  
-After processing, the data is transformed into a standardized pipe-delimited format suitable for the PriceLogix system. Example:
-
-```
-event_id|sku_id|location_key|item_location_status|adjustment_retail_price|source_date|effective_date|adjustment_percentage
-439|27671433|1501|PRICE_ADJ|16|2024-02-16|2024-02-22|14.5
-```
-
-**Example Input Files:**  
-Files containing price adjustment candidates are uploaded to the monitored source directory, following a naming convention that preserves traceability.
-
 #### 6.2 Price Adjustment Schedule (PAS)
 
 **Input Format:**  
 The system retrieves schedule data from a REST API in JSON format, including event identifiers, adjustment dates, fiscal periods, and event classifications.
 
-**Output Format (Example):**  
-The JSON data is converted into a pipe-delimited format for downstream processing. Example:
+**Example Input Files:**  
+The retrieved data is transformed and exported in batch processes, adhering to standardized naming conventions.
+
+
+#### 6.3 PriceLogix Schedule Entry (PSE) 
+PriceLogix Schedule Entry (PSE) represents transformed Price Adjustment Schedule data. Each PSE contains event identification, fiscal information, and up to six adjustment dates, providing the foundational scheduling framework for price adjustments.
+
+The JSON data is converted into a pipe-delimited format for downstream processing. 
+Example:
 
 ```
 event_id|fiscal_year|adj_date_1|adj_date_2|adj_date_3|adj_date_4|adj_date_5|adj_date_6|inventory_date|event_type
 429|2024|2024-10-27||||||2024-12-31|PLANNED
 ```
 
-**Example Input Files:**  
-The retrieved data is transformed and exported in batch processes, adhering to standardized naming conventions.
+#### 6.4 PriceLogix Adjustment Record (PAR)
+**PriceLogix Adjustment Record (PAR)** represents transformed Price Adjustment Directives and Price Restoration Actions. Each PAR contains detailed pricing information including item identification, location, and specific adjustment parameters. These records constitute the actual price modifications to be executed according to the schedule defined in PSEs. Files containing price adjustment candidates are uploaded to the monitored source directory, following a naming convention that preserves traceability. After processing, the data is transformed into a standardized pipe-delimited format suitable for the PriceLogix system. 
+Example:
+
+```
+event_id|sku_id|location_key|item_location_status|adjustment_retail_price|source_date|effective_date|adjustment_percentage
+439|27671433|1501|PRICE_ADJ|16|2024-02-16|2024-02-22|14.5
+```
+
 ### 7. Message Transformations
 
 #### 7.1 Price Change Candidate/PRA Transformations
@@ -484,4 +493,3 @@ JMX monitoring works with Loki to provide insights connected to application logs
   - Historical analysis for troubleshooting.
 - **Retention Policies**: Configurable retention for logs to meet storage and compliance needs.
 - **Alerting**: Logs are tagged for easy event correlation, and Prometheus alerts include log details for quick issue resolution.
-
