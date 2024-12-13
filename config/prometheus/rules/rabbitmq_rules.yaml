@@ -1,0 +1,122 @@
+groups:
+  - name: rabbitmq_alerts
+    rules:
+      # Queue depth alerts
+      - alert: RabbitMQQueueDepthHigh
+        expr: rabbitmq_queue_messages{queue=~"pas.*|pad.*"} > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue depth exceeds threshold"
+          description: "Queue {{ $labels.queue }} has more than 1000 messages for over 5 minutes"
+
+      - alert: RabbitMQQueueDepthCritical
+        expr: rabbitmq_queue_messages{queue=~"pas.*|pad.*"} > 5000
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Queue depth critically high"
+          description: "Queue {{ $labels.queue }} has more than 5000 messages for over 5 minutes"
+
+      # Processing latency alerts
+      - alert: MessageProcessingLatencyHigh
+        expr: rate(message_processing_duration_seconds_sum[5m]) / rate(message_processing_duration_seconds_count[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High message processing latency"
+          description: "Average processing time exceeds 500ms over 5 minutes"
+
+      # Dead letter queue alerts
+      - alert: DeadLetterQueueGrowing
+        expr: rate(rabbitmq_dlq_messages_received_total[5m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Dead letter queue receiving messages"
+          description: "Messages are being sent to DLQ at a rate of {{ $value }} per second"
+
+      - alert: HighDLQFailureRate
+        expr: rate(rabbitmq_dlq_processing_errors_total[5m]) / rate(rabbitmq_dlq_messages_received_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High DLQ processing failure rate"
+          description: "More than 10% of DLQ messages are failing reprocessing"
+
+      # Connection alerts
+      - alert: RabbitMQConnectionsDropping
+        expr: rate(rabbitmq_connections_closed_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RabbitMQ connections are being dropped"
+          description: "Connections are being closed at a rate of {{ $value }} per second"
+
+      # Consumer alerts
+      - alert: NoActiveConsumers
+        expr: rabbitmq_queue_consumers == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Queue has no consumers"
+          description: "Queue {{ $labels.queue }} has no active consumers"
+
+      # Message rate alerts
+      - alert: MessagePublishRateHigh
+        expr: rate(rabbitmq_messages_published_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High message publish rate"
+          description: "Messages are being published at a rate of {{ $value }} per second"
+
+      # Error rate alerts
+      - alert: HighErrorRate
+        expr: rate(message_processing_errors_total[5m]) / rate(messages_processed_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High message processing error rate"
+          description: "Error rate exceeds 5% over 5 minutes"
+
+  - name: system_alerts
+    rules:
+      # Memory alerts
+      - alert: RabbitMQMemoryHigh
+        expr: rabbitmq_process_resident_memory_bytes / rabbitmq_resident_memory_limit_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RabbitMQ memory usage high"
+          description: "RabbitMQ is using more than 80% of its memory limit"
+
+      # Disk alerts
+      - alert: RabbitMQDiskSpaceLow
+        expr: rabbitmq_disk_free_bytes / rabbitmq_disk_space_total_bytes < 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RabbitMQ disk space low"
+          description: "Less than 10% disk space remaining"
+
+      # File descriptor alerts
+      - alert: RabbitMQFileDescriptorsHigh
+        expr: rabbitmq_fd_used / rabbitmq_fd_total > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High file descriptor usage"
+          description: "More than 80% of file descriptors are in use"

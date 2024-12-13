@@ -7,3 +7,5 @@ project(':services:rms-integration-service').projectDir = file('services/rms-int
 project(':services:pricelogix-feed-service').projectDir = file('services/pricelogix-feed-service')
 
 enableFeaturePreview('STABLE_CONFIGURATION_CACHE')
+include 'messaging-lib'
+
