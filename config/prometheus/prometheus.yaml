@@ -1,6 +1,8 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+rule_files:
+  - rules/rabbitmq_rules.yml
 
 scrape_configs:
   - job_name: 'rms-integration-service-regions'
@@ -41,3 +43,8 @@ scrape_configs:
         labels:
           region: 'asia'
           metric_type: 'file_processing'
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'

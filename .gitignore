@@ -35,3 +35,16 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### certificates ###
+# Ignore all certificate files
+*.crt
+
+# Ignore all private key files
+*.key
+
+# Ignore all serial number files
+*.srl
+
+# Environment Files
+.env

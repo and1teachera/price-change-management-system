@@ -1,0 +1,58 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: 'rabbitmq-queue-metrics'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+    metrics_path: /metrics/detailed
+    scheme: http
+    scrape_interval: 30s
+
+    relabel_configs:
+      - source_labels: [queue]
+        regex: '(pas|pad|pra).*'
+        action: keep
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+rules:
+  - name: rabbitmq_alerts
+    rules:
+      - alert: RabbitMQHighMemory
+        expr: rabbitmq_process_resident_memory_bytes / rabbitmq_resident_memory_limit_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RabbitMQ high memory usage"
+          description: "RabbitMQ memory usage is above 80% for 5 minutes"
+
+      - alert: RabbitMQQueueDepthHigh
+        expr: rabbitmq_queue_messages > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RabbitMQ queue depth high"
+          description: "Queue {{ $labels.queue }} has more than 1000 messages for 5 minutes"
+
+      - alert: RabbitMQNoConsumers
+        expr: rabbitmq_queue_consumers == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RabbitMQ queue has no consumers"
+          description: "Queue {{ $labels.queue }} has no consumers"

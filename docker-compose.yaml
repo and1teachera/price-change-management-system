@@ -91,23 +91,30 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
+    hostname: rabbitmq
     ports:
       - "5672:5672"   # AMQP protocol port
+      - "5671:5671"   # AMQP TLS port
       - "15672:15672" # Management UI port
+      - "15671:15671" # Management UI TLS port
+      - "15692:15692" # Prometheus metrics endpoint
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-user}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-password}
-      RABBITMQ_SSL_CERTFILE: /etc/rabbitmq/certs/server.crt
-      RABBITMQ_SSL_KEYFILE: /etc/rabbitmq/certs/server.key
-      RABBITMQ_SSL_CACERTFILE: /etc/rabbitmq/certs/ca.crt
+      RABBITMQ_CONFIG_FILE: /etc/rabbitmq/rabbitmq.conf
+      RABBITMQ_DEFINITIONS_FILE: /etc/rabbitmq/definitions.json
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+      - ./config/rabbitmq/etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./config/rabbitmq/etc/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
       - ./config/rabbitmq/certs:/etc/rabbitmq/certs:ro
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - default
 
   prometheus:
     image: prom/prometheus:latest

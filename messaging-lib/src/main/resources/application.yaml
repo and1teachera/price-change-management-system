@@ -1,0 +1,34 @@
+messaging:
+  consumer:
+    batch:
+      size: 100
+      timeout: 5000
+    concurrent-processors: 4
+
+rabbitmq:
+  host: ${RABBITMQ_HOST:localhost}
+  port: ${RABBITMQ_PORT:5672}
+  username: ${RABBITMQ_USERNAME:guest}
+  password: ${RABBITMQ_PASSWORD:guest}
+  ssl:
+    enabled: ${RABBITMQ_SSL_ENABLED:true}
+  queue:
+    pas: pas.queue
+    pad: pad.queue
+  exchange:
+    pas: pas.exchange
+    pad: pad.exchange
+    dlx: dlx.exchange
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
