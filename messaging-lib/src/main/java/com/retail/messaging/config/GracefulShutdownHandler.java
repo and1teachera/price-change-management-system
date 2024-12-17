@@ -8,6 +8,7 @@ import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.stereotype.Component;
+import lombok.Data;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Component
+@Data
 public class GracefulShutdownHandler implements TomcatConnectorCustomizer,
                                                 ApplicationListener<ContextClosedEvent> {
 

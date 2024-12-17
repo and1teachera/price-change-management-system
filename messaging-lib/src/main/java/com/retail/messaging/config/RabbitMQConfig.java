@@ -7,11 +7,13 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import lombok.Data;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
 @Configuration
+@Data
 public class RabbitMQConfig {
 
     @Value("${rabbitmq.host}")

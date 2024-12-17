@@ -7,6 +7,7 @@ import com.retail.messaging.model.PriceAdjustmentMessage;
 import com.retail.messaging.monitoring.MetricsCollector;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import lombok.Data;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,6 +18,7 @@ import java.util.concurrent.Semaphore;
  */
 
 @Component
+@Data
 public class BatchMessageConsumer {
     private final MessageProcessor messageProcessor;
     private final ErrorHandler errorHandler;

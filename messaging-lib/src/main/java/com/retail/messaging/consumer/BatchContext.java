@@ -1,6 +1,7 @@
 package com.retail.messaging.consumer;
 
 import com.retail.messaging.model.BatchMetrics;
+import lombok.Data;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -8,6 +9,7 @@ import java.util.concurrent.CountDownLatch;
  * @author Angel Zlatenov
  */
 
+@Data
 public class BatchContext {
     private final CountDownLatch completionLatch;
     private final BatchMetrics metrics;
