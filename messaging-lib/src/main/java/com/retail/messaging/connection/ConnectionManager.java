@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import lombok.Data;
 
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
+@Data
 public class ConnectionManager {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
     private final ConnectionFactory connectionFactory;
