@@ -14,8 +14,6 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'org.springframework.boot'
-    apply plugin: 'io.spring.dependency-management'
 
     java {
         toolchain {
@@ -28,6 +26,15 @@ subprojects {
             extendsFrom annotationProcessor
         }
     }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+}
+
+configure(subprojects.findAll { it.path.startsWith(':services:') }) {
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
 
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -43,9 +50,5 @@ subprojects {
 
     tasks.named('bootJar') {
         mainClass = project.findProperty('mainClass') ?: 'com.retail.Application'
-    }
-
-    tasks.named('test') {
-        useJUnitPlatform()
     }
 }

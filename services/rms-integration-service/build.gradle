@@ -7,5 +7,5 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.0'
     implementation 'jakarta.validation:jakarta.validation-api:3.0.0'
     implementation project(':messaging-lib')
-    implementation 'org.projectlombok:lombok:1.18.20'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.0'
 }
