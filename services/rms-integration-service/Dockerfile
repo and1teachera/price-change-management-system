@@ -5,6 +5,8 @@ COPY gradlew .
 COPY gradle gradle
 COPY settings.gradle .
 COPY build.gradle .
+
+COPY messaging-lib messaging-lib
 COPY services services
 
 RUN chmod +x ./gradlew

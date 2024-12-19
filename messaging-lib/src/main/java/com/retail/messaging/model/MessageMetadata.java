@@ -3,15 +3,10 @@ package com.retail.messaging.model;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Angel Zlatenov
  */
-
-
 public class MessageMetadata {
     private String messageId;
     private int retryCount;

@@ -3,4 +3,5 @@ ext {
 }
 
 dependencies {
+    implementation project(':messaging-lib')
 }
