@@ -3,19 +3,19 @@
 ## Functional Requirements
 
 ### 1. RMS Integration Service - Price Adjustment Schedule (PAS) Processing
-- Deploy multiple RMS Integration Service instances, each handling specific store groups
-- Execute daily data retrieval via REST service per instance
+- Deploy multiple RMS Integration Service instances, each handling specific store groups.
+- Execute daily data retrieval via REST service per instance.
 - Transform JSON/CSV data to pipe-delimited format.
 - Map schedule data to **PriceLogix Schedule Entry (PSE)** format specifications.
 - Support up to six adjustment dates per event.
 - Process and map inventory impact dates.
 - Maintain fiscal period alignment.
 - Handle event type classification and mapping.
-- Publish processed data to RabbitMQ for downstream processing
-- Implement OAuth 2.0 client credentials authentication for RMS API access
-- Manage and securely store OAuth client credentials
-- Handle token acquisition and renewal
-- Support configuration of OAuth endpoints for different environments
+- Publish processed data to RabbitMQ for downstream processing.
+- Implement OAuth 2.0 client credentials authentication for RMS API access.
+- Manage and securely store OAuth client credentials.
+- Handle token acquisition and renewal.
+- Support configuration of OAuth endpoints for different environments.
 
 ### 2. PriceLogix Feed Service - Price Adjustment Processing (PAD/PRA)
 - Monitor local directories for incoming price adjustment files.
@@ -28,10 +28,14 @@
   - PRA: ADD → PRICE_RESTORE, DEL → PRICE_RESTORE_CANCEL.
 
 ### 3. Message Queue Integration
-- Configure RabbitMQ for multi-publisher, single-consumer architecture
-- Support multiple RMS Integration Service instances publishing to shared exchange
+- Configure RabbitMQ for multi-publisher, single-consumer architecture.
+- Support multiple RMS Integration Service instances publishing to a shared exchange.
 - Maintain message persistence.
-- Implement sequential message processing by PriceLogix Feed Service
+- Implement hybrid message processing:
+  - Messages are grouped into configurable batches for efficient processing.
+  - Batch processing is combined with controlled concurrency for parallel execution.
+  - Semaphore limits are used to manage parallelism within each batch.
+- Maintain message ordering at the store group level.
 - Handle message routing and delivery with RabbitMQ.
 - Implement retry policies with exponential backoff.
 - Process Dead Letter Queue messages every 15 minutes.
@@ -46,12 +50,12 @@
 ## Non-Functional Requirements
 
 ### 1. Performance
-- Support concurrent processing across multiple RMS Integration Service instances
-- Maintain 500ms maximum message processing time per record
-- Handle queue depth up to 1000 messages across all publishing instances
-- Implement 3-retry policy with exponential backoff for failed processing
-- Support staggered scheduling to prevent system resource contention
-- Monitor individual instance performance and overall system throughput
+- Support concurrent processing across multiple RMS Integration Service instances.
+- Maintain 500ms maximum message processing time per record.
+- Handle queue depth up to 1000 messages across all publishing instances.
+- Implement 3-retry policy with exponential backoff for failed processing.
+- Support staggered scheduling to prevent system resource contention.
+- Monitor individual instance performance and overall system throughput.
 
 ### 2. Reliability
 - Ensure message delivery guarantees.
@@ -68,8 +72,8 @@
 - Log security events, including failed authentications and unauthorized access.
 
 ### 4. Monitoring and Observability
-- Integrate with Prometheus for metrics collection across all service instances
-- Provide Grafana dashboards showing both instance and aggregate performance
+- Integrate with Prometheus for metrics collection across all service instances.
+- Provide Grafana dashboards showing both instance and aggregate performance.
 - Implement comprehensive logging:
   - JSON-formatted log entries.
   - Multiple logging levels (Informational, Warning, Error).
@@ -97,9 +101,9 @@
 - Prometheus monitoring and Grafana visualization.
 - Docker for containerization.
 - Gradle build system with multi-module support.
-- Support for PSE and PAR format validation and transformation
-- Implementation of format-specific error handling and logging
-- Performance optimization for both PSE and PAR processing paths
+- Support for PSE and PAR format validation and transformation.
+- Implementation of format-specific error handling and logging.
+- Performance optimization for both PSE and PAR processing paths.
 
 ## Integration Points
 - RMS REST service for PAS data.
