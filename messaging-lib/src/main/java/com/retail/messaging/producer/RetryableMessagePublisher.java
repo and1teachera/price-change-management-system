@@ -65,29 +65,17 @@ public class RetryableMessagePublisher implements MessagePublisher {
     @Override
     public void publish(PriceAdjustmentMessage message, String exchange, String routingKey)
             throws MessagePublishException {
-        publishInternal(message, exchange, routingKey, 0);
-    }
-
-    @Override
-    public void publishWithPriority(PriceAdjustmentMessage message, String exchange,
-                                    String routingKey, int priority) throws MessagePublishException {
-        if (priority < 1 || priority > 10) {
-            throw new IllegalArgumentException("Priority must be between 1 and 10");
-        }
-        publishInternal(message, exchange, routingKey, priority);
+        publishInternal(message, exchange, routingKey);
     }
 
     private void publishInternal(PriceAdjustmentMessage message, String exchange,
-                                 String routingKey, int priority) throws MessagePublishException {
+                                 String routingKey) throws MessagePublishException {
         String correlationId = UUID.randomUUID().toString();
         CorrelationMetadata metadata = new CorrelationMetadata();
         pendingConfirms.put(correlationId, metadata);
 
         MessageProperties properties = new MessageProperties();
         properties.setCorrelationId(correlationId);
-        if (priority > 0) {
-            properties.setPriority(priority);
-        }
 
         Message amqpMessage = messageConverter.toMessage(message, properties);
 
