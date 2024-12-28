@@ -33,18 +33,18 @@
 2. The service sends a GET request to the RMS REST API.
 3. The API responds with PAS data in JSON format.
 4. The service validates the data structure and checks for mandatory fields:
-   - Validates event identifiers for correct numeric format
-   - Verifies fiscal period information completeness
-   - Ensures adjustment dates follow chronological order
-   - Validates event type classifications against allowed values
-   - Confirms all required location applicability fields are present
+    - Validates event identifiers for correct numeric format
+    - Verifies fiscal period information completeness
+    - Ensures adjustment dates follow chronological order
+    - Validates event type classifications against allowed values
+    - Confirms all required location applicability fields are present
 5. Valid data is transformed into PSE pipe-delimited format, following strict field mapping rules.
 6. Each PSE record undergoes format-specific validation:
-   - Verifies proper fiscal year formatting
-   - Validates chronological sequence of adjustment dates (adj_date_1 through adj_date_6)
-   - Ensures event type code matches approved PriceLogix values
-   - Confirms inventory date formatting and logical placement
-7. The service publishes the validated PSE data to a RabbitMQ exchange.
+    - Verifies proper fiscal year formatting
+    - Validates chronological sequence of adjustment dates (adj_date_1 through adj_date_6)
+    - Ensures event type code matches approved PriceLogix values
+    - Confirms inventory date formatting and logical placement
+7. - The service groups validated PSE data into batches for efficient publication to a RabbitMQ exchange.`
 8. The service logs the operation, including the total number of records processed and any issues encountered.
 
 **Extensions, Other Scenarios, and Alternatives**:
@@ -148,21 +148,21 @@ flowchart TD
 1. PriceLogix Feed Service monitors the input directory for new PAD/PRA files.
 2. Upon detecting a file, the service validates its format and header information against the standardized naming conventions.
 3. For valid files:
-   - The service reads the file content line by line.
-   - Performs PAR-specific data validation:
-     * Validates event_id numeric format and range
-     * Verifies sku_id exists and follows naming conventions
-     * Confirms location_key matches valid store locations
-     * Validates item_location_status against allowed values
-     * Checks adjustment_retail_price and adjustment_percentage for valid ranges
-     * Ensures date fields follow required format (YYYY-MM-DD)
-   - Transforms each record according to PAR format requirements:
-     * Maps source fields to PAR structure
-     * Applies business rules for status code translation
-     * Handles location hierarchy expansion for PRA records
-   - Validates transformed PAR records for completeness and consistency
-   - Writes the processed data to the output directory.
-   - Moves the original file to the archive directory.
+    - The service reads the file content line by line.
+    - Performs PAR-specific data validation:
+        * Validates event_id numeric format and range
+        * Verifies sku_id exists and follows naming conventions
+        * Confirms location_key matches valid store locations
+        * Validates item_location_status against allowed values
+        * Checks adjustment_retail_price and adjustment_percentage for valid ranges
+        * Ensures date fields follow required format (YYYY-MM-DD)
+    - Transforms each record according to PAR format requirements:
+        * Maps source fields to PAR structure
+        * Applies business rules for status code translation
+        * Handles location hierarchy expansion for PRA records
+    - Validates transformed PAR records for completeness and consistency
+    - Writes the processed data to the output directory.
+    - Moves the original file to the archive directory.
 4. For invalid or partially processed files:
     - Log detailed error information.
     - Move the file to the error directory for manual review.
@@ -257,7 +257,7 @@ flowchart TD
 **Postconditions**:
 
 - Messages from RMS Integration Service are successfully published to RabbitMQ.
-- Messages are consumed sequentially by the PriceLogix Feed Service.
+- Messages are consumed in batches by the PriceLogix Feed Service, with controlled concurrency and ordering preserved at the store group level.
 - Dead Letter Queue (DLQ) contains unprocessed messages due to errors or retry exhaustion.
 
 **Main Success Scenario Step by Step**:
@@ -689,9 +689,9 @@ flowchart TD
 **Main Success Scenario Step by Step**:
 
 1. PriceLogix Feed Service periodically queries the DLQ for failed messages.
-2. For each message:
+2. For each batch:
     - Validate the message content.
-    - Determine whether the message can be reprocessed.
+    - Determine whether individual messages within the batch can be reprocessed.
 3. If the message is valid for reprocessing:
     - Move it back to the main RabbitMQ queue for reprocessing.
     - Log the reprocessing attempt.
@@ -745,14 +745,14 @@ flowchart TD
 flowchart TD
     A2[Start] --> B2[Poll DLQ]
     B2 --> C2{Messages Found?}
-    C2 -->|Yes| D2[Validate Message]
+    C2 -->|Yes| D2[Validate Batch Content]
     C2 -->|No| B2
-    D2 --> E2{Can Reprocess?}
-    E2 -->|Yes| F2[Move to Main Queue]
+    D2 --> E2{Valid Messages in Batch?}
+    E2 -->|Yes| F2[Move Valid to Main Queue]
     E2 -->|No| G2[Archive Message]
     F2 --> H2[Log Reprocessing]
     G2 --> H2
-    H2 --> I2[Generate Report]
+    H2 --> I2[Generate Batch Report]
     I2 --> J2[End]
 ```
 
