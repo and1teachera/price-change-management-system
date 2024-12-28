@@ -78,7 +78,6 @@
         "x-dead-letter-exchange": "dlx.exchange",
         "x-dead-letter-routing-key": "pas.dlq",
         "x-message-ttl": 86400000,
-        "x-max-priority": 10,
         "x-queue-mode": "lazy",
         "x-max-length": 100000,
         "x-overflow": "reject-publish"
@@ -93,7 +92,6 @@
         "x-dead-letter-exchange": "dlx.exchange",
         "x-dead-letter-routing-key": "pad.dlq",
         "x-message-ttl": 86400000,
-        "x-max-priority": 10,
         "x-queue-mode": "lazy",
         "x-max-length": 100000,
         "x-overflow": "reject-publish"
