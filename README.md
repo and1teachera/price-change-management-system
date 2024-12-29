@@ -1,5 +1,9 @@
 # RMS to PriceLogix Integration System
 
+## CI/CD Status
+
+[![Run tests and verify Docker Compose](https://github.com/and1teachera/price-change-management-system/actions/workflows/ci.yaml/badge.svg)](https://github.com/and1teachera/price-change-management-system/actions/workflows/ci.yaml)
+
 ## Overview
 
 This system facilitates seamless integration between the **Retail Management Suite (RMS)** and the **PriceLogix Enterprise Optimizer**. It implements a distributed processing architecture to efficiently handle retail price adjustments across multiple store locations while providing actionable insights to optimize pricing decisions. The system focuses on:
